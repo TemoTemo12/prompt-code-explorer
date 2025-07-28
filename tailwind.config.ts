@@ -52,6 +52,21 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				success: 'hsl(var(--success))',
+				warning: 'hsl(var(--warning))',
+				info: 'hsl(var(--info))',
+				code: {
+					bg: 'hsl(var(--code-bg))',
+					border: 'hsl(var(--code-border))'
+				},
+				syntax: {
+					comment: 'hsl(var(--syntax-comment))',
+					keyword: 'hsl(var(--syntax-keyword))',
+					string: 'hsl(var(--syntax-string))',
+					number: 'hsl(var(--syntax-number))',
+					function: 'hsl(var(--syntax-function))',
+					variable: 'hsl(var(--syntax-variable))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
