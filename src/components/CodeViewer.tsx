@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import JSZip from 'jszip';
 
 interface CodeFile {
   name: string;
@@ -54,6 +57,62 @@ const SyntaxHighlighter = ({ code, language }: { code: string; language: string 
 
 export const CodeViewer = ({ files }: CodeViewerProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
+
+  const handleDownloadZip = async () => {
+    try {
+      const zip = new JSZip();
+      
+      // Add each file to the ZIP
+      files.forEach((file) => {
+        zip.file(file.name, file.content);
+      });
+      
+      // Generate README.md with extraction info
+      const readmeContent = `# Extracted Code Files
+
+This ZIP contains the source code extracted from a website using Code Hunter.
+
+## Files Included:
+${files.map(file => `- **${file.name}** (${file.type.toUpperCase()}) - ${file.size}`).join('\n')}
+
+## Total Files: ${files.length}
+
+Generated on: ${new Date().toLocaleString()}
+
+---
+Extracted with Code Hunter - Website Source Code Extractor & AI Assistant
+`;
+      
+      zip.file('README.md', readmeContent);
+      
+      // Generate the ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      // Create download link
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `extracted-code-${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Complete!",
+        description: `Successfully downloaded ${files.length} files as ZIP archive`,
+      });
+      
+    } catch (error) {
+      console.error('Error creating ZIP:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to create ZIP file. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredFiles = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,9 +142,19 @@ export const CodeViewer = ({ files }: CodeViewerProps) => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Extracted Code</CardTitle>
-          <Badge variant="secondary" className="text-xs">
-            {files.length} files
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {files.length} files
+            </Badge>
+            <Button 
+              onClick={handleDownloadZip}
+              size="sm"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download ZIP
+            </Button>
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
