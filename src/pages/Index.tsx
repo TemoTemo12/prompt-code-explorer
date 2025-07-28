@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { URLInput } from '@/components/URLInput';
 import { CodeViewer } from '@/components/CodeViewer';
 import { AIAssistant } from '@/components/AIAssistant';
+import { ExtractHistory } from '@/components/ExtractHistory';
 import { useToast } from "@/components/ui/use-toast";
+import { useExtractHistory } from '@/hooks/useExtractHistory';
 
 interface CodeFile {
   name: string;
@@ -15,6 +17,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [extractedFiles, setExtractedFiles] = useState<CodeFile[]>([]);
   const { toast } = useToast();
+  const { history, addToHistory, removeFromHistory, clearHistory } = useExtractHistory();
 
   const handleExtract = async (url: string) => {
     setIsLoading(true);
@@ -353,6 +356,9 @@ window.siteUtils = utils;`,
       
       setExtractedFiles(mockFiles);
       
+      // Add to history
+      addToHistory(url, mockFiles);
+      
       toast({
         title: "Code Extraction Complete!",
         description: `Successfully extracted ${mockFiles.length} files from ${url}`,
@@ -369,13 +375,29 @@ window.siteUtils = utils;`,
     }
   };
 
+  const handleSelectHistoryItem = (item: any) => {
+    setExtractedFiles(item.files);
+    toast({
+      title: "History Loaded",
+      description: `Loaded extraction from ${item.url}`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 space-y-4">
         {!extractedFiles.length ? (
           <div className="min-h-screen flex items-center justify-center">
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-2xl space-y-4">
               <URLInput onExtract={handleExtract} isLoading={isLoading} />
+              {history.length > 0 && (
+                <ExtractHistory
+                  history={history}
+                  onSelectHistoryItem={handleSelectHistoryItem}
+                  onRemoveItem={removeFromHistory}
+                  onClearHistory={clearHistory}
+                />
+              )}
             </div>
           </div>
         ) : (
